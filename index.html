@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCHER - Anime & Merch Collectibles</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0714; color: #ffffff; padding-bottom: 40px; }
+        
+        header { text-align: center; padding: 25px 15px; background: linear-gradient(180deg, #190d28 0%, #0d0714 100%); border-bottom: 1px solid #2a1645; }
+        header h1 { font-size: 2.2rem; color: #ffffff; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+        header p { color: #a68ec3; font-size: 0.95rem; margin-top: 5px; }
+        
+        .controls { max-width: 1100px; margin: 20px auto; padding: 0 15px; display: flex; flex-direction: column; gap: 15px; }
+        .search-bar { width: 100%; padding: 14px 20px; background: #190d28; border: 1px solid #331b52; border-radius: 30px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+        .search-bar:focus { border-color: #00ff87; box-shadow: 0 0 10px rgba(0, 255, 135, 0.3); }
+        
+        .filters { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-btn { background: #190d28; border: 1px solid #331b52; color: #a68ec3; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .filter-btn.active, .filter-btn:hover { background: #00ff87; color: #0d0714; border-color: #00ff87; font-weight: bold; }
+        
+        .grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+        
+        .card { background: #190d28; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; position: relative; }
+        .card:hover, .card:active { transform: scale(1.03); border-color: #00ff87; box-shadow: 0 0 20px rgba(0, 255, 135, 0.4); z-index: 2; }
+        
+        .badge { position: absolute; top: 10px; left: 10px; background: #00ff87; color: #0d0714; font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; z-index: 3; text-transform: uppercase; }
+        
+        .carousel { position: relative; width: 100%; aspect-ratio: 1 / 2; overflow: hidden; background: #000; }
+        .carousel img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; }
+        
+        .card-body { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+        .title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
+        .sub { font-size: 0.75rem; color: #8c76a9; margin-bottom: 10px; }
+        
+        .prices { margin-top: auto; margin-bottom: 10px; }
+        .price-wsp { font-size: 1.1rem; font-weight: 800; color: #00ff87; }
+        .price-meli { font-size: 0.75rem; color: #a68ec3; text-decoration: line-through; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 6px; }
+        .btn { width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: 0.2s; }
+        .btn-meli { background: #ffe600; color: #000; }
+        .btn-meli:hover { background: #ffd000; }
+        .btn-wsp { background: #00ff87; color: #0d0714; }
+        .btn-wsp:hover { background: #00cc6a; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ARCHER</h1>
+        <p>Anime & Merch Collectibles</p>
+    </header>
+
+    <div class="controls">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Buscar personaje o anime...">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filtrarCategoria('Todos')">Todos</button>
+            <button class="filter-btn" onclick="filtrarCategoria('Dakimakura')">Dakimakuras</button>
+            <button class="filter-btn" onclick="filtrarCategoria('Reloj')">Relojes</button>
+            <button class="filter-btn" onclick="filtrarCategoria('Almohada')">Almohadas</button>
+            <button class="filter-btn" onclick="filtrarCategoria('Taza')">Tazas</button>
+        </div>
+    </div>
+
+    <div class="grid" id="productGrid"></div>
+
+    <script>
+        const productos = [{"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/2zzjxv.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/xb8toi.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/l4ty8m.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/odj5ki.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/6uqze7.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/uj34w2.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/pw5mgi.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/c73wni.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/7va5lu.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/16eymo.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/177mxn.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/kfiatw.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/vtub53.png"]}, {"personaje": "Producto", "franquicia": "General", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28General%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://files.catbox.moe/y1ky03.png"]}, {"personaje": "Producto", "franquicia": "", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}, {"personaje": "Producto", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "precio_transf": 0, "precio_meli": 0, "link_meli": "https://mercadolibre.com.ar", "link_wsp": "https://wa.me/5491168031083?text=%C2%A1Hola%20ARCHER%21%20Quiero%20encargar%20el/la%20Dakimakura%20de%20Producto%20%28Wuthering%20Waves%29%20aprovechando%20el%20precio%20por%20transferencia.", "destacado": false, "fotos": ["https://via.placeholder.com/400x600?text=Sin+Imagen"]}];
+        let catActual = 'Todos';
+
+        function renderProductos() {
+            const grid = document.getElementById('productGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            grid.innerHTML = '';
+
+            productos.forEach((p, index) => {
+                const matchCat = catActual === 'Todos' || p.categoria.toLowerCase() === catActual.toLowerCase();
+                const matchSearch = p.personaje.toLowerCase().includes(search) || p.franquicia.toLowerCase().includes(search);
+
+                if (matchCat && matchSearch) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    let badgeHTML = p.destacado ? `<div class="badge">Más Vendido</div>` : '';
+                    let meliBtnHTML = p.link_meli ? `<a href="${p.link_meli}" target="_blank" class="btn btn-meli">Ver en MercadoLibre</a>` : '';
+
+                    card.innerHTML = `
+                        ${badgeHTML}
+                        <div class="carousel" id="carousel-${index}" onmouseenter="pausarCarrusel(${index})" onmouseleave="reanudarCarrusel(${index})">
+                            <img id="img-${index}" src="${p.fotos[0]}" alt="${p.personaje}">
+                        </div>
+                        <div class="card-body">
+                            <div class="title">${p.personaje}</div>
+                            <div class="sub">${p.franquicia}</div>
+                            <div class="prices">
+                                <div class="price-wsp">$${p.precio_transf.toLocaleString('es-AR')} ARS</div>
+                                ${p.precio_meli ? `<div class="price-meli">ML: $${p.precio_meli.toLocaleString('es-AR')}</div>` : ''}
+                            </div>
+                            <div class="btn-group">
+                                ${meliBtnHTML}
+                                <a href="${p.link_wsp}" target="_blank" class="btn btn-wsp">Pedir por WhatsApp</a>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                    iniciarCarrusel(index, p.fotos);
+                }
+            });
+        }
+
+        const carruseles = {};
+
+        function iniciarCarrusel(id, fotos) {
+            if (fotos.length <= 1) return;
+            let current = 0;
+            carruseles[id] = setInterval(() => {
+                current = (current + 1) % fotos.length;
+                const img = document.getElementById(`img-${id}`);
+                if (img) img.src = fotos[current];
+            }, 3000);
+        }
+
+        function pausarCarrusel(id) { clearInterval(carruseles[id]); }
+        function reanudarCarrusel(id) {
+            const p = productos[id];
+            if (p && p.fotos.length > 1) iniciarCarrusel(id, p.fotos);
+        }
+
+        function filtrarCategoria(cat) {
+            catActual = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderProductos();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderProductos);
+        renderProductos();
+    </script>
+</body>
+</html>
