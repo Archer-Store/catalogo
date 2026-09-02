@@ -1,0 +1,174 @@
+import os
+import requests
+from PIL import Image, ImageChops
+
+# --- CONFIGURACIÓN DE NOTION ---
+NOTION_TOKEN = "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"
+DATABASE_ID = "3c467edf6aa3804bb22eff38cf888fd0"
+
+def diseno_existe_en_notion(diseno_id):
+    """Consulta si el diseño exacto (archivo) ya fue subido previamente."""
+    headers = {
+        "Authorization": f"Bearer {NOTION_TOKEN}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+    filter_payload = {
+        "filter": {
+            "property": "Diseño ID",
+            "rich_text": {"equals": diseno_id}
+        }
+    }
+    try:
+        check_res = requests.post(
+            f"https://api.notion.com/v1/databases/{DATABASE_ID}/query",
+            headers=headers,
+            json=filter_payload
+        )
+        if check_res.status_code == 200 and len(check_res.json().get("results", [])) > 0:
+            return True
+    except Exception as e:
+        print(f"  ⚠️ Error consultando Notion: {e}")
+    return False
+
+def subir_imagen_servidor(file_path):
+    """Sube el mockup a Catbox para asignarlo como portada en Notion."""
+    try:
+        with open(file_path, "rb") as f:
+            response = requests.post(
+                "https://catbox.moe/user/api.php",
+                data={"reqtype": "fileupload"},
+                files={"fileToUpload": f},
+                timeout=20
+            )
+        if response.status_code == 200 and response.text.startswith("http"):
+            return response.text.strip()
+    except Exception as e:
+        print(f"  ⚠️ No se pudo obtener enlace para portada: {e}")
+    return None
+
+def registrar_en_notion(nombre_personaje, nombre_modelo, diseno_id, franquicia, path_guardado):
+    """Registra el diseño como variante en Notion."""
+    headers = {
+        "Authorization": f"Bearer {NOTION_TOKEN}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    print(f"  ☁️ Subiendo portada a servidor...")
+    image_url = subir_imagen_servidor(path_guardado)
+
+    payload = {
+        "parent": {"database_id": DATABASE_ID},
+        "properties": {
+            "Personaje": {"title": [{"text": {"content": nombre_personaje}}]},
+            "Modelo": {"rich_text": [{"text": {"content": nombre_modelo}}]},
+            "Diseño ID": {"rich_text": [{"text": {"content": diseno_id}}]},
+            "Franquicia": {"select": {"name": franquicia}},
+            "Estado": {"status": {"name": "In progress"}}
+        }
+    }
+
+    if image_url:
+        payload["cover"] = {"type": "external", "external": {"url": image_url}}
+
+    response = requests.post("https://api.notion.com/v1/pages", headers=headers, json=payload)
+    if response.status_code == 200:
+        print(f"  📌 Registrado con éxito: {nombre_personaje} ({nombre_modelo}) [{franquicia}]")
+    else:
+        print(f"  ⚠️ Error al registrar en Notion ({response.status_code}): {response.text}")
+
+def procesar_lote_dakimakuras(
+    carpeta_entrada="disenos",
+    carpeta_salida="resultados",
+    fondo_gris_path="fondo_gris.png",
+    base_path="almohada_base.png",
+    mascara_path="mascara_almohadas.png",
+    box_izq=(55, 0, 364, 1003),
+    box_der=(396, 0, 705, 1003)
+):
+    fondo_gris = Image.open(fondo_gris_path).convert("RGBA")
+    base = Image.open(base_path).convert("RGB")
+    mascara = Image.open(mascara_path).convert("L")
+    
+    if not os.path.exists(carpeta_salida):
+        os.makedirs(carpeta_salida)
+
+    extensiones_validas = ('.png', '.jpg', '.jpeg', '.webp')
+
+    for root, _, archivos in os.walk(carpeta_entrada):
+        archivos_validos = [f for f in archivos if f.lower().endswith(extensiones_validas)]
+        if not archivos_validos:
+            continue
+
+        rel_path = os.path.relpath(root, carpeta_entrada)
+        franquicia = "General" if rel_path == "." else rel_path.replace("\\", "/")
+
+        for archivo in archivos_validos:
+            diseno_id = os.path.splitext(archivo)[0]
+            
+            # Separar Personaje y Modelo (Ej: "Naruto_Modo Sabio" -> Personaje: Naruto, Modelo: Modo Sabio)
+            if "_" in diseno_id:
+                partes = diseno_id.split("_", 1)
+                nombre_personaje = partes[0].replace('-', ' ').title()
+                nombre_modelo = partes[1].replace('-', ' ').title()
+            elif "-" in diseno_id:
+                partes = diseno_id.split("-", 1)
+                nombre_personaje = partes[0].title()
+                nombre_modelo = partes[1].title()
+            else:
+                nombre_personaje = diseno_id.title()
+                nombre_modelo = "Modelo 1"
+
+            # 1. VERIFICACIÓN: Si la imagen/diseño exacto ya existe, se salta
+            if diseno_existe_en_notion(diseno_id):
+                print(f"⏩ {diseno_id} ya existe en Notion. Omitiendo renderizado...")
+                continue
+
+            # 2. RENDERIZADO
+            print(f"🎨 Procesando diseño: {nombre_personaje} - {nombre_modelo}...")
+            path_img = os.path.join(root, archivo)
+            full_img = Image.open(path_img).convert("RGBA")
+            ancho, alto = full_img.size
+            proporcion = ancho / alto
+            
+            if proporcion > 0.5:
+                img_izq = full_img.crop((0, 0, ancho // 2, alto))
+                img_der = full_img.crop((ancho // 2, 0, ancho, alto))
+            else:
+                img_izq = full_img
+                img_der = full_img
+            
+            w_izq, h_izq = box_izq[2] - box_izq[0], box_izq[3] - box_izq[1]
+            w_der, h_der = box_der[2] - box_der[0], box_der[3] - box_der[1]
+            
+            img_izq = img_izq.resize((w_izq, h_izq), Image.Resampling.LANCZOS)
+            img_der = img_der.resize((w_der, h_der), Image.Resampling.LANCZOS)
+            
+            capa_diseno = Image.new("RGBA", base.size, (255, 255, 255, 255))
+            capa_diseno.paste(img_izq, (box_izq[0], box_izq[1]), img_izq)
+            capa_diseno.paste(img_der, (box_der[0], box_der[1]), img_der)
+            
+            diseno_rgb = capa_diseno.convert("RGB")
+            resultado_multiplicado = ImageChops.multiply(base, diseno_rgb)
+            
+            almohada_renderizada = Image.new("RGBA", base.size)
+            almohada_renderizada.paste(resultado_multiplicado, (0, 0), mascara)
+            
+            lienzo_final = fondo_gris.copy()
+            lienzo_final.paste(almohada_renderizada, (0, 0), almohada_renderizada)
+            
+            path_guardado = os.path.join(carpeta_salida, f"{diseno_id}_catalogo.png")
+            lienzo_final.save(path_guardado, format="PNG")
+            
+            # 3. REGISTRO EN NOTION
+            registrar_en_notion(
+                nombre_personaje=nombre_personaje,
+                nombre_modelo=nombre_modelo,
+                diseno_id=diseno_id,
+                franquicia=franquicia,
+                path_guardado=path_guardado
+            )
+
+if __name__ == "__main__":
+    procesar_lote_dakimakuras()

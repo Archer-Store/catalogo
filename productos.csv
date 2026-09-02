@@ -1,0 +1,45 @@
+codigo;producto;cant_vellon_g;costo_insumo_directo;cm2_microfibra;cm2_cordura;cant_hojas
+DAKI10S;Dakimakura 100x29cm (Simple);700;0;6592;0;5
+DAKI10D;Dakimakura 100x29cm (Doble);700;0;6592;0;10
+DAKI85;Dakimakura 85cm Simple;700;0;6014;0;5
+FDAKI95D;Dakimakura (Funda + Almohada) 95cm Doble;700;0;6014;0;10
+AL2020;Almohada 20cm x 20cm;125;0;484;0;1
+AL2025;Almohada 20cm x 25cm;125;0;594;0;1
+DAKI6020;Almohada Daki 60x20cm;350;0;2400;0;3
+AL3020;Almohada 30cm x 20cm;160;0;864;0;1
+AL3040;Almohada 30cm x 40cm;180;0;1344;0;2
+ALFOR;Almohadas con Forma;160;0;682;0;1
+SCRUN;Scrunchies;0;0;682;0;1
+FU10S;Funda 100cm x 30cm (Simple);0;0;6591;0;5
+FU10D;Funda 100cm x 30cm (Doble);0;0;6591;0;10
+FU14S;Funda 140cm x 40cm (Simple);0;0;11644;0;5
+FU14D;Funda 140cm x 40cm (Doble);0;0;11644;0;10
+CAR;Cartuchera;0;1100;0;930;1
+MPAD;Mousepad;0;1200;0;0;1
+MPADXL;Mousepad XL;0;4000;0;0;5
+CUADA4;Cuadernillo A4;0;4190;0;0;2
+TACE;Taza Ceramica;0;4680;0;0;1
+TAPLA;Taza Plastica;0;948;0;0;1
+JATER;Jarro Termico;0;3365;0;0;1
+SUBE;Vinilo para SUBE;0;150;0;0;1
+VIA4;Vinilo A4;0;630;0;0;1
+CRED;Credencial;0;420;0;0;1
+SPUM;Remera Spum;0;4500;0;0;2
+REL;Reloj;0;8000;0;0;2
+POVA;Posa Vasos;0;1520;0;0;1
+MET1520;Metal 15 x 20;0;1685;0;0;1
+ME6030;Metal 60 x 30;0;14150;0;0;3
+POR1813;Portaretrato 18x13;0;2380;0;0;1
+INDI3040;Individual cordura 30X40;0;0;0;1200;2
+ACRI;Acrilico;0;4325;0;0;1
+PORLLA;Porta Llave;0;665;0;0;1
+MALTIS;Mate Listo;0;3400;0;0;1
+ANTFAZ;Antifaz P/ Dormir;0;1350;0;0;1
+DELCO;Delantal de Cocina;0;2500;0;0;1
+CUATE3515;Cuadro de Tela 35 x 15;0;5000;0;0;2
+MATE;Mate Color c/ bombilla;0;1965;0;0;1
+MATERO;Set de Mate completo;0;9130;0;0;2
+CARMAD2511;Cartel Madera 25x11cm;0;1760;0;0;1
+PIN;Pines;0;280;0;0;1
+LATMET;Lata de metal;0;170;0;0;1
+CINTA;Cinta p/ llave;0;310;0;0;1
