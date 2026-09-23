@@ -21,36 +21,31 @@ def obtener_productos_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # Intentar obtener de disenos_locales si existe, o de productos
+    # Intentar obtener de disenos_locales si existe
     try:
         cursor.execute("SELECT franquicia, personaje, ruta_archivo FROM disenos_locales")
         disenos = cursor.fetchall()
     except:
         disenos = []
 
-    # Obtener también matriz de precios de productos.csv / tabla productos
+    # Obtener matriz de precios de la tabla productos en archer.db
     precios_map = {}
     try:
         cursor.execute("SELECT codigo, producto, precio_sugerido, precio_ml FROM productos")
         for row in cursor.fetchall():
             codigo, prod_nombre, p_sug, p_ml = row
-            # Asociar por nombre normalizado
             precios_map[prod_nombre.lower()] = {
-                "precio_transf": p_sug or 17000,
-                "precio_meli": p_ml or 27055,
-                "link_meli": ""
+                "precio_transf": p_sug or 17000.0,
+                "precio_meli": p_ml or 27055.0
             }
     except Exception as e:
         print(f"Aviso al leer precios de DB: {e}")
 
     conn.close()
 
-    # Si hay diseños locales escaneados, armar el catálogo dinámico con ellos
+    # Si hay diseños locales escaneados, armar el catálogo con ellos
     if disenos:
         for franq, personaje, ruta in disenos:
-            # Formatear título profesional
-            titulo_limpio = f"Dakimakura - {personaje.replace('_', ' ').title()}"
-            
             # Buscar precio base de dakimakura 90cm
             precio_t = 17000.0
             precio_m = 27055.0
@@ -60,11 +55,9 @@ def obtener_productos_db():
                     precio_m = v["precio_meli"]
                     break
 
-            # Imagen (asegurar ruta web)
             foto_url = ruta if ruta.startswith("http") else f"./{ruta}"
 
-            # Mensaje para WhatsApp destacando el beneficio por transferencia
-            msg_wsp = f"¡Hola ARCHER! Quiero encargar la Dakimakura de {personaje} ({franq}). Aprovecho el precio especial por transferencia directa."
+            msg_wsp = f"¡Hola ARCHER! Quiero encargar la Dakimakura de {personaje.replace('_', ' ').title()} ({franq}). Aprovecho el precio especial por transferencia directa."
             wsp_url = f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(msg_wsp)}"
 
             productos.append({
@@ -79,7 +72,7 @@ def obtener_productos_db():
                 "fotos": [foto_url]
             })
     else:
-        # Fallback si no hay diseños escaneados, usar tabla productos
+        # Fallback si no hay diseños escaneados, usar tabla productos directamente
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
         cursor.execute("SELECT codigo, producto, precio_sugerido, precio_ml FROM productos")
@@ -89,8 +82,8 @@ def obtener_productos_db():
                 "personaje": prod_nombre,
                 "franquicia": "General",
                 "categoria": "Merchandising",
-                "precio_transf": p_sug or 5000,
-                "precio_meli": p_ml or 10000,
+                "precio_transf": p_sug or 5000.0,
+                "precio_meli": p_ml or 10000.0,
                 "link_meli": "",
                 "link_wsp": f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(f'Hola ARCHER! Me interesa {prod_nombre}')}",
                 "destacado": False,
@@ -142,16 +135,20 @@ def generar_html(productos):
         
         .card-body {{ padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }}
         .title {{ font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3; }}
-        .sub {{ font-size: 0.75rem; color: #a68ec3; margin-bottom: 12px; }}
+        .sub {{ font-size: 0.75rem; color: #a68ec3; margin-bottom: 10px; }}
         
-        .prices {{ margin-top: auto; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; }}
-        .price-wsp {{ font-size: 1.15rem; font-weight: 800; color: #00ff87; }}
-        .price-wsp-label {{ font-size: 0.65rem; color: #a68ec3; text-transform: uppercase; letter-spacing: 0.5px; }}
+        .prices {{ margin-top: auto; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }}
+        .price-row {{ display: flex; justify-content: space-between; align-items: center; }}
+        .price-wsp-label {{ font-size: 0.7rem; color: #00ff87; font-weight: 700; text-transform: uppercase; }}
+        .price-wsp {{ font-size: 1.05rem; font-weight: 800; color: #00ff87; }}
+        
+        .price-meli-label {{ font-size: 0.7rem; color: #ffe600; font-weight: 700; text-transform: uppercase; }}
+        .price-meli {{ font-size: 0.95rem; font-weight: 700; color: #ffe600; }}
         
         .btn-group {{ display: flex; flex-direction: column; gap: 8px; }}
         .btn {{ width: 100%; padding: 11px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: 0.2s; }}
         .btn-meli {{ background: #ffe600; color: #000; }}
-        .btn-meli:hover {{ background: #ffd000; }}
+        .btn-meli:hover {{ background: #ffd000; box-shadow: 0 0 10px rgba(255, 230, 0, 0.4); }}
         .btn-wsp {{ background: #00ff87; color: #0d0714; }}
         .btn-wsp:hover {{ background: #00cc6a; box-shadow: 0 0 12px rgba(0, 255, 135, 0.4); }}
     </style>
@@ -204,9 +201,10 @@ def generar_html(productos):
                     
                     let badgeHTML = p.destacado ? `<div class="badge">🔥 Destacado</div>` : '';
                     let franqHTML = p.franquicia ? `<div class="franq-tag">${{p.franquicia}}</div>` : '';
-                    let meliBtnHTML = p.link_meli ? `<a href="${{p.link_meli}}" target="_blank" class="btn btn-meli">Ver en MercadoLibre</a>` : '';
+                    let meliBtnHTML = `<a href="${{p.link_meli || 'https://www.mercadolibre.com.ar'}}" target="_blank" class="btn btn-meli">Ver en MercadoLibre</a>`;
 
                     let precioTransfFmt = Number(p.precio_transf).toLocaleString('es-AR', {{ style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }});
+                    let precioMeliFmt = Number(p.precio_meli).toLocaleString('es-AR', {{ style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }});
 
                     card.innerHTML = `
                         ${{badgeHTML}}
@@ -219,8 +217,14 @@ def generar_html(productos):
                             <div class="sub">${{p.categoria}} — ${{p.franquicia}}</div>
                             
                             <div class="prices">
-                                <div class="price-wsp-label">Precio por Transferencia</div>
-                                <div class="price-wsp">${{precioTransfFmt}}</div>
+                                <div class="price-row">
+                                    <span class="price-wsp-label">Transferencia</span>
+                                    <span class="price-wsp">${{precioTransfFmt}}</span>
+                                </div>
+                                <div class="price-row">
+                                    <span class="price-meli-label">Mercado Libre</span>
+                                    <span class="price-meli">${{precioMeliFmt}}</span>
+                                </div>
                             </div>
 
                             <div class="btn-group">
@@ -238,7 +242,7 @@ def generar_html(productos):
             }}
         }}
 
-        // Render inicial al cargar la página
+        Render inicial al cargar la página
         renderProductos();
     </script>
 </body>
@@ -246,7 +250,7 @@ def generar_html(productos):
 """
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
-    print("✨ ¡Catálogo index.html generado y optimizado con éxito!")
+    print("✨ ¡Catálogo index.html generado con precio de Transferencia y Mercado Libre!")
 
 if __name__ == "__main__":
     prods = obtener_productos_db()
