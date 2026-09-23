@@ -2,95 +2,124 @@ import json
 import os
 import sys
 import urllib.parse
+import requests
 import sqlite3
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Configuración y rutas
-DB_NAME = "archer.db"
+# Credenciales de Notion y WhatsApp
+NOTION_TOKEN = "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"
+DATABASE_ID = "3c467edf6aa3804bb22eff38cf888fd0"
 WHATSAPP_NUMBER = "5491168031083"
+DB_NAME = "archer.db"
 
-def obtener_productos_db():
-    """Obtiene los productos directamente desde SQLite (archer.db) combinado con los diseños locales"""
-    productos = []
-    
-    if not os.path.exists(DB_NAME):
-        print("[ERROR] No se encontró la base de datos archer.db")
-        return productos
+headers = {
+    "Authorization": f"Bearer {NOTION_TOKEN}",
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-06-28",
+}
 
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-
-    # Intentar obtener de disenos_locales si existe
-    try:
-        cursor.execute("SELECT franquicia, personaje, ruta_archivo FROM disenos_locales")
-        disenos = cursor.fetchall()
-    except:
-        disenos = []
-
-    # Obtener matriz de precios de la tabla productos en archer.db
+def obtener_precios_sqlite():
+    """Obtiene los precios actualizados desde SQLite para combinarlos con Notion"""
     precios_map = {}
+    if os.path.exists(DB_NAME):
+        try:
+            conn = sqlite3.connect(DB_NAME)
+            cursor = conn.cursor()
+            cursor.execute("SELECT producto, precio_sugerido, precio_ml FROM productos")
+            for row in cursor.fetchall():
+                p_nombre, p_sug, p_ml = row
+                precios_map[p_nombre.lower()] = {
+                    "precio_transf": p_sug or 17000.0,
+                    "precio_meli": p_ml or 27055.0
+                }
+            conn.close()
+        except Exception as e:
+            print(f"[AVISO] No se pudo leer SQLite para precios: {e}")
+    return precios_map
+
+def obtener_productos_notion():
+    """Obtiene el catálogo oficial desde Notion con imágenes y links de MeLi reales"""
+    url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
     try:
-        cursor.execute("SELECT codigo, producto, precio_sugerido, precio_ml FROM productos")
-        for row in cursor.fetchall():
-            codigo, prod_nombre, p_sug, p_ml = row
-            precios_map[prod_nombre.lower()] = {
-                "precio_transf": p_sug or 17000.0,
-                "precio_meli": p_ml or 27055.0
-            }
+        response = requests.post(url, headers=headers, timeout=20)
     except Exception as e:
-        print(f"Aviso al leer precios de DB: {e}")
+        print(f"[ERROR] Excepción al conectar con Notion: {e}")
+        return []
 
-    conn.close()
+    if response.status_code != 200:
+        print(f"[ERROR] Error al conectar con Notion ({response.status_code}): {response.text}")
+        return []
 
-    # Si hay diseños locales escaneados, armar el catálogo con ellos
-    if disenos:
-        for franq, personaje, ruta in disenos:
-            # Buscar precio base de dakimakura 90cm
-            precio_t = 17000.0
-            precio_m = 27055.0
-            for k, v in precios_map.items():
-                if "dakimakura" in k:
-                    precio_t = v["precio_transf"]
-                    precio_m = v["precio_meli"]
-                    break
+    data = response.json()
+    productos = []
+    precios_sqlite = obtener_precios_sqlite()
 
-            foto_url = ruta if ruta.startswith("http") else f"./{ruta}"
+    # Buscar precios por defecto para dakimakuras
+    def_transf = 17000.0
+    def_meli = 27055.0
+    for k, v in precios_sqlite.items():
+        if "dakimakura" in k:
+            def_transf = v["precio_transf"]
+            def_meli = v["precio_meli"]
+            break
 
-            msg_wsp = f"¡Hola ARCHER! Quiero encargar la Dakimakura de {personaje.replace('_', ' ').title()} ({franq}). Aprovecho el precio especial por transferencia directa."
-            wsp_url = f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(msg_wsp)}"
+    for page in data.get("results", []):
+        props = page["properties"]
 
-            productos.append({
-                "personaje": personaje.replace('_', ' ').title(),
-                "franquicia": franq,
-                "categoria": "Dakimakura",
-                "precio_transf": precio_t,
-                "precio_meli": precio_m,
-                "link_meli": "",
-                "link_wsp": wsp_url,
-                "destacado": True if "kafka" in personaje.lower() else False,
-                "fotos": [foto_url]
-            })
-    else:
-        # Fallback si no hay diseños escaneados, usar tabla productos directamente
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT codigo, producto, precio_sugerido, precio_ml FROM productos")
-        for row in cursor.fetchall():
-            codigo, prod_nombre, p_sug, p_ml = row
-            productos.append({
-                "personaje": prod_nombre,
-                "franquicia": "General",
-                "categoria": "Merchandising",
-                "precio_transf": p_sug or 5000.0,
-                "precio_meli": p_ml or 10000.0,
-                "link_meli": "",
-                "link_wsp": f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(f'Hola ARCHER! Me interesa {prod_nombre}')}",
-                "destacado": False,
-                "fotos": ["https://via.placeholder.com/400x600?text=ARCHER+Merch"]
-            })
-        conn.close()
+        # Extraer Personaje / Nombre (Título)
+        title_list = props.get("Personaje", {}).get("title", []) or props.get("Nombre", {}).get("title", [])
+        personaje = title_list[0]["plain_text"] if title_list else "Producto"
 
+        # Extraer Franquicia
+        franq_prop = props.get("Franquicia", {})
+        franquicia = "General"
+        if franq_prop.get("type") == "select" and franq_prop.get("select"):
+            franquicia = franq_prop["select"]["name"]
+        elif franq_prop.get("type") == "rich_text" and franq_prop.get("rich_text"):
+            franquicia = franq_prop["rich_text"][0]["plain_text"]
+
+        # Extraer Categoría
+        cat_select = props.get("Categoría", {}).get("select", {})
+        categoria = cat_select.get("name", "Dakimakura") if cat_select else "Dakimakura"
+
+        # Precios (Intentar de Notion, si no están, usar los calculados en SQLite)
+        p_transf = props.get("Precio Transferencia", {}).get("number") or def_transf
+        p_meli = props.get("Precio", {}).get("number") or def_meli
+
+        # Enlaces y Destacado
+        link_meli = props.get("Link MeLi", {}).get("url") or ""
+        destacado = props.get("Destacado", {}).get("checkbox", False)
+
+        # Galería de imágenes (Portada de Notion)
+        fotos = []
+        cover = page.get("cover")
+        if cover:
+            if cover["type"] == "external":
+                fotos.append(cover["external"]["url"])
+            elif cover["type"] == "file":
+                fotos.append(cover["file"]["url"])
+
+        if not fotos:
+            fotos = ["https://via.placeholder.com/400x600?text=ARCHER+Merch"]
+
+        # Mensaje automático para WhatsApp
+        msg_wsp = f"¡Hola ARCHER! Quiero encargar el/la {categoria} de {personaje} ({franquicia}). Aprovecho el precio especial por transferencia directa."
+        wsp_url = f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(msg_wsp)}"
+
+        productos.append({
+            "personaje": personaje,
+            "franquicia": franquicia,
+            "categoria": categoria,
+            "precio_transf": p_transf,
+            "precio_meli": p_meli,
+            "link_meli": link_meli,
+            "link_wsp": wsp_url,
+            "destacado": destacado,
+            "fotos": fotos,
+        })
+
+    print(f"[INFO] Se obtuvieron {len(productos)} productos desde Notion con éxito.")
     return productos
 
 
@@ -201,7 +230,7 @@ def generar_html(productos):
                     
                     let badgeHTML = p.destacado ? `<div class="badge">🔥 Destacado</div>` : '';
                     let franqHTML = p.franquicia ? `<div class="franq-tag">${{p.franquicia}}</div>` : '';
-                    let meliBtnHTML = `<a href="${{p.link_meli || 'https://www.mercadolibre.com.ar'}}" target="_blank" class="btn btn-meli">Ver en MercadoLibre</a>`;
+                    let meliBtnHTML = p.link_meli ? `<a href="${{p.link_meli}}" target="_blank" class="btn btn-meli">Ver en MercadoLibre</a>` : '';
 
                     let precioTransfFmt = Number(p.precio_transf).toLocaleString('es-AR', {{ style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }});
                     let precioMeliFmt = Number(p.precio_meli).toLocaleString('es-AR', {{ style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }});
@@ -242,7 +271,6 @@ def generar_html(productos):
             }}
         }}
 
-        Render inicial al cargar la página
         renderProductos();
     </script>
 </body>
@@ -250,8 +278,11 @@ def generar_html(productos):
 """
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
-    print("✨ ¡Catálogo index.html generado con precio de Transferencia y Mercado Libre!")
+    print("✨ ¡Catálogo index.html generado correctamente desde Notion!")
 
 if __name__ == "__main__":
-    prods = obtener_productos_db()
-    generar_html(prods)
+    prods = obtener_productos_notion()
+    if prods:
+        generar_html(prods)
+    else:
+        print("[ERROR] No se pudieron obtener productos de Notion.")
