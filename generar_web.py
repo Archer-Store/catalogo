@@ -7,7 +7,6 @@ import sqlite3
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Credenciales y configuración
 NOTION_TOKEN = "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"
 DATABASE_ID = "3c467edf6aa3804bb22eff38cf888fd0"
 WHATSAPP_NUMBER = "5491168031083"
@@ -20,7 +19,7 @@ headers = {
 }
 
 def obtener_precios_variantes():
-    """Obtiene el diccionario exacto de variantes y precios desde SQLite"""
+    """Obtiene las variantes y fuerza nombres claros para Simple y Doble si son idénticos"""
     variantes = {}
     if not os.path.exists(DB_NAME):
         return variantes
@@ -29,8 +28,15 @@ def obtener_precios_variantes():
         cursor = conn.cursor()
         cursor.execute("SELECT codigo, producto, precio_sugerido, precio_ml FROM productos WHERE codigo IN ('DAKI90S', 'DAKI90D', 'DAKIBUSTO', 'FDAKI90S', 'FDAKI90D', 'FU90S', 'FU90D')")
         for codigo, prod, p_sug, p_ml in cursor.fetchall():
+            nombre_final = prod
+            # Asegurar distinción visual clara si en la BD tienen el mismo texto base
+            if codigo == 'DAKI90S' and '(simple)' not in prod.lower():
+                nombre_final = f"{prod} (Simple)"
+            elif codigo == 'DAKI90D' and '(doble)' not in prod.lower():
+                nombre_final = f"{prod} (Doble)"
+
             variantes[codigo] = {
-                "nombre": prod,
+                "nombre": nombre_final,
                 "precio_transf": p_sug or 17000.0,
                 "precio_meli": p_ml or 27055.0
             }
@@ -38,7 +44,6 @@ def obtener_precios_variantes():
     except Exception as e:
         print(f"[AVISO] Error al leer variantes de SQLite: {e}")
     
-    # Fallback si está vacío
     if not variantes:
         variantes = {
             "DAKI90S": {"nombre": "Dakimakura 90x30cm (Simple)", "precio_transf": 17000.0, "precio_meli": 27055.0},
@@ -160,13 +165,20 @@ def generar_html(productos):
         .title {{ font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3; }}
         .sub {{ font-size: 0.75rem; color: #a68ec3; margin-bottom: 10px; }}
         
-        .prices {{ margin-top: auto; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; }}
+        .prices {{ margin-top: auto; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }}
         .price-row {{ display: flex; justify-content: space-between; align-items: center; }}
-        .price-wsp-label {{ font-size: 0.65rem; color: #00ff87; font-weight: 700; text-transform: uppercase; }}
-        .price-wsp {{ font-size: 0.95rem; font-weight: 800; color: #00ff87; }}
+        .price-wsp-label {{ font-size: 0.7rem; color: #00ff87; font-weight: 700; text-transform: uppercase; }}
+        .price-wsp {{ font-size: 1.05rem; font-weight: 800; color: #00ff87; }}
         
-        .btn {{ width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: 0.2s; background: #00ff87; color: #0d0714; }}
-        .btn:hover {{ background: #00cc6a; box-shadow: 0 0 12px rgba(0, 255, 135, 0.4); }}
+        .price-meli-label {{ font-size: 0.7rem; color: #ffe600; font-weight: 700; text-transform: uppercase; }}
+        .price-meli {{ font-size: 0.95rem; font-weight: 700; color: #ffe600; }}
+        
+        .btn-group {{ display: flex; flex-direction: column; gap: 8px; }}
+        .btn {{ width: 100%; padding: 11px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: 0.2s; }}
+        .btn-meli {{ background: #ffe600; color: #000; }}
+        .btn-meli:hover {{ background: #ffd000; box-shadow: 0 0 10px rgba(255, 230, 0, 0.4); }}
+        .btn-wsp {{ background: #00ff87; color: #0d0714; }}
+        .btn-wsp:hover {{ background: #00cc6a; box-shadow: 0 0 12px rgba(0, 255, 135, 0.4); }}
 
         /* MODAL DE DETALLE (ESTILO MERCADO LIBRE) */
         .modal-overlay {{ position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 7, 20, 0.85); backdrop-filter: blur(8px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 15px; }}
@@ -300,7 +312,6 @@ def generar_html(productos):
                     let badgeHTML = p.destacado ? `<div class="badge">🔥 Destacado</div>` : '';
                     let franqHTML = p.franquicia ? `<div class="franq-tag">${{p.franquicia}}</div>` : '';
 
-                    // Precio base (DAKI90S por defecto para la tarjeta)
                     let precioBase = p.variantes && p.variantes['DAKI90S'] ? p.variantes['DAKI90S'].precio_transf : 17000;
                     let precioBaseMeli = p.variantes && p.variantes['DAKI90S'] ? p.variantes['DAKI90S'].precio_meli : 27055;
                     let precioTransfFmt = Number(precioBase).toLocaleString('es-AR', {{ style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }});
@@ -342,7 +353,6 @@ def generar_html(productos):
             document.getElementById('modalTitle').innerText = "Dakimakura - " + productoActual.personaje;
             document.getElementById('modalFranq').innerText = productoActual.franquicia;
 
-            // Galería de fotos / carrusel
             const mainImg = document.getElementById('modalMainImg');
             const thumbs = document.getElementById('modalThumbnails');
             thumbs.innerHTML = '';
@@ -362,7 +372,6 @@ def generar_html(productos):
                 }});
             }}
 
-            // Rellenar variantes de precios
             const selectVar = document.getElementById('variantSelect');
             selectVar.innerHTML = '';
             if (productoActual.variantes) {{
@@ -390,12 +399,10 @@ def generar_html(productos):
                 document.getElementById('modalPriceTransf').innerText = transfFmt;
                 document.getElementById('modalPriceMeli').innerText = meliFmt;
 
-                // Enlace WhatsApp personalizado con variante
                 let msgWsp = `¡Hola ARCHER! Quiero encargar la Dakimakura de ${{productoActual.personaje}} (${{productoActual.franquicia}}) en versión: ${{varianteData.nombre}}. Aprovecho el precio por transferencia.`;
                 document.getElementById('modalBtnWsp').href = `https://wa.me/${{whatsappNumber}}?text=${{encodeURIComponent(msgWsp)}}`;
             }}
 
-            // Botón Mercado Libre
             const btnMeli = document.getElementById('modalBtnMeli');
             if(productoActual.link_meli) {{
                 btnMeli.href = productoActual.link_meli;
@@ -422,7 +429,7 @@ def generar_html(productos):
 """
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
-    print("✨ ¡Catálogo index.html generado con Modal de Detalle, Carrusel de Variantes y Precios por Categoría!")
+    print("✨ ¡Catálogo index.html generado con nombres de variantes diferenciados (Simple / Doble)!")
 
 if __name__ == "__main__":
     prods = obtener_productos_notion()
