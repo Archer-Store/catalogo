@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCHER - Anime & Merch Collectibles</title>
+    
+    <!-- SEO y Open Graph (Vista previa para WhatsApp, IG, Redes) -->
+    <meta name="description" content="Catálogo exclusivo de dakimakuras, tazas, almohadas y merchandising anime y gaming de alta calidad. ¡Encargá el tuyo!">
+    <meta property="og:title" content="ARCHER — Anime & Merch Collectibles">
+    <meta property="og:description" content="Explorá nuestro catálogo de coleccionables, dakimakuras y accesorios. Pedidos directos por WhatsApp.">
+    <meta property="og:image" content="https://files.catbox.moe/2u7k81.png">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0714; color: #ffffff; padding-bottom: 40px; }
+        
+        header { text-align: center; padding: 30px 15px; background: linear-gradient(180deg, #190d28 0%, #0d0714 100%); border-bottom: 1px solid #2a1645; }
+        header h1 { font-size: 2.4rem; color: #ffffff; letter-spacing: 3px; font-weight: 800; text-transform: uppercase; }
+        header p { color: #a68ec3; font-size: 1rem; margin-top: 5px; }
+
+        /* LAYOUT PRINCIPAL CON SIDEBAR */
+        .main-layout { max-width: 1300px; margin: 25px auto; padding: 0 15px; display: flex; flex-direction: column; gap: 20px; }
+        @media (min-width: 992px) { 
+            .main-layout { flex-direction: row; align-items: flex-start; } 
+        }
+
+        /* SIDEBAR DE FRANQUICIAS */
+        .sidebar { background: #190d28; border: 1px solid #331b52; border-radius: 16px; padding: 20px; width: 100%; }
+        @media (min-width: 992px) { 
+            .sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 20px; max-height: 85vh; overflow-y: auto; }
+            .sidebar::-webkit-scrollbar { width: 6px; }
+            .sidebar::-webkit-scrollbar-thumb { background: #331b52; border-radius: 3px; }
+        }
+        .sidebar h3 { font-size: 1rem; color: #00ff87; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #331b52; padding-bottom: 8px; }
+        .franq-list { display: flex; flex-direction: column; gap: 6px; }
+        .franq-btn { background: transparent; border: none; color: #c9b1e2; padding: 8px 12px; border-radius: 8px; text-align: left; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .franq-btn:hover, .franq-btn.active { background: rgba(0, 255, 135, 0.1); color: #00ff87; font-weight: 600; }
+        .franq-count { font-size: 0.75rem; background: #0d0714; padding: 2px 6px; border-radius: 10px; color: #a68ec3; border: 1px solid #331b52; }
+
+        /* CONTENIDO DERECHO */
+        .content-area { flex-grow: 1; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        
+        .controls { display: flex; flex-direction: column; gap: 15px; }
+        .search-bar { width: 100%; padding: 14px 20px; background: #190d28; border: 1px solid #331b52; border-radius: 30px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+        .search-bar:focus { border-color: #00ff87; box-shadow: 0 0 15px rgba(0, 255, 135, 0.3); }
+        
+        .filters { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-btn { background: #190d28; border: 1px solid #331b52; color: #a68ec3; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .filter-btn.active, .filter-btn:hover { background: #00ff87; color: #0d0714; border-color: #00ff87; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+        @media (min-width: 1200px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+        
+        .card { background: #190d28; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; position: relative; cursor: pointer; }
+        .card:hover { transform: translateY(-5px); border-color: #00ff87; box-shadow: 0 10px 25px rgba(0, 255, 135, 0.2); z-index: 2; }
+        
+        .badge { position: absolute; top: 10px; left: 10px; background: #00ff87; color: #0d0714; font-size: 0.7rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; z-index: 3; text-transform: uppercase; }
+        .franq-tag { position: absolute; top: 10px; right: 10px; background: rgba(137, 87, 229, 0.85); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; z-index: 3; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .carousel { position: relative; width: 100%; aspect-ratio: 1 / 2; overflow: hidden; background: #000; }
+        .carousel img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .card:hover .carousel img { transform: scale(1.05); }
+        
+        .card-body { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
+        .title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px; line-height: 1.3; }
+        .sub { font-size: 0.75rem; color: #a68ec3; margin-bottom: 10px; }
+        
+        .prices { margin-top: auto; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; }
+        .price-wsp-label { font-size: 0.7rem; color: #00ff87; font-weight: 700; text-transform: uppercase; }
+        .price-wsp { font-size: 1.05rem; font-weight: 800; color: #00ff87; }
+        
+        .price-meli-label { font-size: 0.7rem; color: #ffe600; font-weight: 700; text-transform: uppercase; }
+        .price-meli { font-size: 0.95rem; font-weight: 700; color: #ffe600; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 8px; }
+        .btn { width: 100%; padding: 11px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; text-decoration: none; text-align: center; display: inline-block; transition: 0.2s; }
+        .btn-meli { background: #ffe600; color: #000; }
+        .btn-meli:hover { background: #ffd000; box-shadow: 0 0 10px rgba(255, 230, 0, 0.4); }
+        .btn-wsp { background: #00ff87; color: #0d0714; }
+        .btn-wsp:hover { background: #00cc6a; box-shadow: 0 0 12px rgba(0, 255, 135, 0.4); }
+
+        /* MODAL DE DETALLE (ESTILO MERCADO LIBRE) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 7, 20, 0.85); backdrop-filter: blur(8px); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 15px; }
+        .modal-container { background: #190d28; border: 1px solid #331b52; border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; position: relative; animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @media (min-width: 768px) { .modal-container { flex-direction: row; } }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-close { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.1); color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .modal-close:hover { background: #00ff87; color: #0d0714; }
+
+        .modal-gallery { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; background: #0a0410; border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
+        .modal-main-img { width: 100%; aspect-ratio: 1 / 2; object-fit: cover; border-radius: 12px; margin-bottom: 12px; border: 1px solid #331b52; }
+        .modal-thumbnails { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding-bottom: 5px; }
+        .thumb { width: 55px; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; opacity: 0.6; transition: 0.2s; }
+        .thumb.active, .thumb:hover { border-color: #00ff87; opacity: 1; }
+
+        .modal-info { flex: 1.2; padding: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .modal-title { font-size: 1.5rem; font-weight: 800; color: #fff; }
+        .modal-sub { font-size: 0.85rem; color: #a68ec3; }
+        
+        .variant-select-box { display: flex; flex-direction: column; gap: 6px; }
+        .variant-label { font-size: 0.75rem; color: #a68ec3; font-weight: 700; text-transform: uppercase; }
+        .variant-dropdown { background: #0d0714; border: 1px solid #331b52; color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 0.95rem; outline: none; cursor: pointer; }
+        .variant-dropdown:focus { border-color: #00ff87; }
+
+        .ficha-tecnica { background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; font-size: 0.8rem; color: #c9b1e2; display: flex; flex-direction: column; gap: 4px; }
+        .ficha-tecnica b { color: #fff; }
+
+        .modal-prices { background: rgba(0,255,135,0.05); border: 1px solid rgba(0,255,135,0.2); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .modal-price-transf { font-size: 1.5rem; font-weight: 900; color: #00ff87; }
+        .modal-price-meli { font-size: 1.1rem; font-weight: 700; color: #ffe600; }
+
+        .modal-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ARCHER</h1>
+        <p>Anime & Merch Collectibles</p>
+    </header>
+
+    <div class="main-layout">
+        <!-- SIDEBAR DE FRANQUICIAS -->
+        <aside class="sidebar">
+            <h3>Franquicias</h3>
+            <div class="franq-list" id="franqList">
+                <!-- Se rellena por JS -->
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="content-area">
+            <div class="controls">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Buscar por personaje, anime o franquicia..." oninput="renderProductos()">
+                <div class="filters" id="filterContainer">
+                    <button class="filter-btn active" onclick="filtrarCategoria('Todos', this)">Todos</button>
+                    <button class="filter-btn" onclick="filtrarCategoria('Dakimakura', this)">Dakimakuras</button>
+                    <button class="filter-btn" onclick="filtrarCategoria('Reloj', this)">Relojes</button>
+                    <button class="filter-btn" onclick="filtrarCategoria('Almohada', this)">Almohadas</button>
+                    <button class="filter-btn" onclick="filtrarCategoria('Taza', this)">Tazas</button>
+                </div>
+            </div>
+
+            <div class="grid" id="productGrid"></div>
+        </main>
+    </div>
+
+    <!-- MODAL DE DETALLE -->
+    <div class="modal-overlay" id="productModal" onclick="cerrarModalFuera(event)">
+        <div class="modal-container" id="modalContainer">
+            <button class="modal-close" onclick="cerrarModal()">✕</button>
+            <div class="modal-gallery">
+                <img id="modalMainImg" class="modal-main-img" src="" alt="Vista previa">
+                <div class="modal-thumbnails" id="modalThumbnails"></div>
+            </div>
+            <div class="modal-info">
+                <div>
+                    <div class="modal-sub" id="modalFranq">Franquicia</div>
+                    <h2 class="modal-title" id="modalTitle">Personaje</h2>
+                </div>
+
+                <div class="variant-select-box">
+                    <label class="variant-label">Seleccionar Versión / Variante:</label>
+                    <select id="variantSelect" class="variant-dropdown" onchange="actualizarVarianteModal()"></select>
+                </div>
+
+                <div class="ficha-tecnica">
+                    <div><b>Medida:</b> 90 cm x 30 cm</div>
+                    <div><b>Estampado:</b> Alta definición a doble faz / simple faz</div>
+                    <div><b>Confección:</b> Microfibra premium + Relleno de vellón siliconado</div>
+                </div>
+
+                <div class="modal-prices">
+                    <div>
+                        <div style="font-size: 0.7rem; color: #00ff87; text-transform: uppercase; font-weight: 700;">Precio por Transferencia</div>
+                        <div class="modal-price-transf" id="modalPriceTransf">$0</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #ffe600; text-transform: uppercase; font-weight: 700;">Precio Mercado Libre</div>
+                        <div class="modal-price-meli" id="modalPriceMeli">$0</div>
+                    </div>
+                </div>
+
+                <div class="modal-btn-group">
+                    <a id="modalBtnWsp" href="#" target="_blank" class="btn btn-wsp">💬 Encargar por WhatsApp</a>
+                    <a id="modalBtnMeli" href="#" target="_blank" class="btn btn-meli" style="display:none;">Ver en MercadoLibre</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const productos = [{"personaje": "Ichika nakano", "franquicia": "Go-Toubun no Hanayome", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/2u7k81.png"]}, {"personaje": "Emilia", "franquicia": "Re Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/uo3g75.png"]}, {"personaje": "Pyra", "franquicia": "Xenovable Chronicles", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/37h9zl.png"]}, {"personaje": "Sayaka kirasaka", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/1royx2.png"]}, {"personaje": "Tsumugi", "franquicia": "Princess Connect! ReDive", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/1zzlg7.png"]}, {"personaje": "Itsuki", "franquicia": "_SoloWhatsApp/Go-Tōbun no Hanayome", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/w7ww8e.png"]}, {"personaje": "Reze", "franquicia": "_SoloWhatsApp/Chainsaw Man", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/i79vlj.png"]}, {"personaje": "Yi xuan", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/vwypcd.png"]}, {"personaje": "Ye shunguang", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/v0wgig.png"]}, {"personaje": "Vivian banshee", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/o7vyda.png"]}, {"personaje": "Vivian banshee", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/x1ne1r.png"]}, {"personaje": "Hoshimi miyabi", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/vtjw7v.png"]}, {"personaje": "Hoshimi miyabi", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/zdgymh.png"]}, {"personaje": "Ellen Joe", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/rron4k.png"]}, {"personaje": "Belle", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/zv0tst.png"]}, {"personaje": "Anby demara", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/vzhvlz.png"]}, {"personaje": "Alice", "franquicia": "Zenless Zone Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/9mslju.png"]}, {"personaje": "Victor nikiforov y yuuri katsuki", "franquicia": "Yuri on Ice", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/s4i6pe.png"]}, {"personaje": "Zani", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/dre3og.png"]}, {"personaje": "Zani", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/p1c9id.png"]}, {"personaje": "Yangyang", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/bshx43.png"]}, {"personaje": "The shorekeeper", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/trcxu6.png"]}, {"personaje": "The shorekeeper", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ll4hnu.png"]}, {"personaje": "The shorekeeper", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/abvi7h.png"]}, {"personaje": "Rover", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/0ztv3k.png"]}, {"personaje": "Lupa", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ybtvyy.png"]}, {"personaje": "Lucilla", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/80wwof.png"]}, {"personaje": "Iuno", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/icvy7r.png"]}, {"personaje": "Chisa", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/1r55rw.png"]}, {"personaje": "Changli", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/zcuyml.png"]}, {"personaje": "Changli", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/2nqstv.png"]}, {"personaje": "Changli", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/u2epwh.png"]}, {"personaje": "Changli", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/91y4rg.png"]}, {"personaje": "Aemeath", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/omamxp.png"]}, {"personaje": "Aemeath", "franquicia": "Wuthering Waves", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/5s1z1z.png"]}, {"personaje": "Kirisu mafuyu", "franquicia": "We Never Learn", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/4enyuz.png"]}, {"personaje": "Super creek", "franquicia": "Uma Musume", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/b3rkh6.png"]}, {"personaje": "Still in love", "franquicia": "Uma Musume", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/n6tacq.png"]}, {"personaje": "Silence suzuka", "franquicia": "Uma Musume", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/y71dye.png"]}, {"personaje": "Meisho doto", "franquicia": "Uma Musume", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/vogp2f.png"]}, {"personaje": "Misaka mikoto", "franquicia": "Toaru Majutsu no Index", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/y0cf4q.png"]}, {"personaje": "Misaka mikoto", "franquicia": "Toaru Majutsu no Index", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/oepb12.png"]}, {"personaje": "Tarte", "franquicia": "The World's Finest Assassin Gets Reincarnated in Another World as an Aristocrat", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/68v0n5.png"]}, {"personaje": "Dia viekone", "franquicia": "The World's Finest Assassin Gets Reincarnated in Another World as an Aristocrat", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/3sezq8.png"]}, {"personaje": "Umeki otoha", "franquicia": "THE iDOLM@STER Cinderella Girls", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/slnxer.png"]}, {"personaje": "Siesta", "franquicia": "The detective is already dead", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/bo4k3b.png"]}, {"personaje": "Nagisa natsuragi", "franquicia": "The detective is already dead", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/myyh0m.png"]}, {"personaje": "Rimuru", "franquicia": "Tensura", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/w3z2q0.png"]}, {"personaje": "Raphtalia", "franquicia": "Tate no Yuusha", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ojcqrv.png"]}, {"personaje": "Philo", "franquicia": "Tate no Yuusha", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/tkapq5.png"]}, {"personaje": "Yukina himeragi", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/rrkwyh.png"]}, {"personaje": "Yukina himeragi", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/vvtd2s.png"]}, {"personaje": "Yukina himeragi", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/1tyoqa.png"]}, {"personaje": "Nagisa akatsuki", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/5h7tsf.png"]}, {"personaje": "Nagisa akatsuki", "franquicia": "Strike the Blood", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/hhowrk.png"]}, {"personaje": "Akane shinjo", "franquicia": "SSSS. Gridman", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ugt02z.png"]}, {"personaje": "Akane shinjo", "franquicia": "SSSS. Gridman", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/gs5lp0.png"]}, {"personaje": "Yor briar", "franquicia": "Spy x family", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/d1atw4.png"]}, {"personaje": "Yor briar", "franquicia": "Spy x family", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/94hoym.png"]}, {"personaje": "Sajuna inui", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/qd6xd4.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/q5x8am.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/w5ym4u.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/314dzm.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/suqzub.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/oy3n2z.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/cf6xwc.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/pgoi2w.png"]}, {"personaje": "Marin kitagawa", "franquicia": "Sono Bisque Doll wa Koi wo Suru", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/4e6lqb.png"]}, {"personaje": "Mira", "franquicia": "Shūmatsu no Harem", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/136pfx.png"]}, {"personaje": "Mikasa", "franquicia": "Shingeki no Kyojin", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/63a1gs.png"]}, {"personaje": "Levi", "franquicia": "Shingeki no Kyojin", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/o03duy.png"]}, {"personaje": "Levi 6", "franquicia": "Shingeki no Kyojin", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ea46rz.png"]}, {"personaje": "Torako koshi", "franquicia": "Shikanoko Nokonoko Koshitantan", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/ioe8un.png"]}, {"personaje": "Torako koshi", "franquicia": "Shikanoko Nokonoko Koshitantan", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/bc0mxd.png"]}, {"personaje": "Noko shikanoko", "franquicia": "Shikanoko Nokonoko Koshitantan", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/v1lvn9.png"]}, {"personaje": "Noko shikanoko", "franquicia": "Shikanoko Nokonoko Koshitantan", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/kht62u.png"]}, {"personaje": "Minako aino", "franquicia": "Sailor Moon", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/4n5008.png"]}, {"personaje": "Sumi sakurasawa", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/0rtwqu.png"]}, {"personaje": "Sumi sakurasawa", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/oy312f.png"]}, {"personaje": "Ruka sarashina", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/4hz78g.png"]}, {"personaje": "Ruka sarashina", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/oaa4gu.png"]}, {"personaje": "Mami nanami", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/umo0ua.png"]}, {"personaje": "Mami nanami", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/cxci59.png"]}, {"personaje": "Chizuru mizuhara", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/qba2rq.png"]}, {"personaje": "Chizuru mizuhara", "franquicia": "Rent a Girlfriend", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/trhke0.png"]}, {"personaje": "Ram", "franquicia": "Re Zero", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/p5gui1.png"]}, {"personaje": "Tsumugi2", "franquicia": "Princess Connect! ReDive", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/8wmnr7.png"]}, {"personaje": "Shio minamo", "franquicia": "Osananajimi to wa LoveCome ni Naranai", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/xv3iog.png"]}, {"personaje": "Shio minamo", "franquicia": "Osananajimi to wa LoveCome ni Naranai", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/7zj0c3.png"]}, {"personaje": "Akari hiodoshi", "franquicia": "Osananajimi to wa LoveCome ni Naranai", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/wq1hlh.png"]}, {"personaje": "Akari hiodoshi", "franquicia": "Osananajimi to wa LoveCome ni Naranai", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/2hucrw.png"]}, {"personaje": "Yukinoshita.yukino.full.3133151", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/qidv4k.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/g1ynmp.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/uua15m.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/f4zsid.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/xpqyju.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/c2mxq7.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/nhe3jw.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/1xa35p.png"]}, {"personaje": "Yukino yukinoshita", "franquicia": "Oregairu", "categoria": "Dakimakura", "link_meli": "", "destacado": false, "fotos": ["https://files.catbox.moe/s9ezcs.png"]}];
+        const variantesGlobales = {"DAKI90D": {"nombre_base": "Dakimakura 90x29cm (Doble)", "precio_meli": 30565.0, "precio_transf": 20000.0}, "DAKI90S": {"nombre_base": "Dakimakura 90x29cm (Simple)", "precio_meli": 27055.0, "precio_transf": 17000.0}, "DAKIBUSTO": {"nombre_base": "Dakimakura Busto 60x29cm", "precio_meli": 19560.0, "precio_transf": 11500.0}, "FDAKI90D": {"nombre_base": "Dak. (Funda + Almohada) 90cm (Doble)", "precio_meli": 32990.0, "precio_transf": 22585.0}, "FDAKI90S": {"nombre_base": "Dak. (Funda + Almohada) 90cm (Simple)", "precio_meli": 31440.0, "precio_transf": 19400.0}, "FU90D": {"nombre_base": "Funda 90cm x 30cm (Doble)", "precio_meli": 20460.0, "precio_transf": 12100.0}, "FU90S": {"nombre_base": "Funda 90cm x 30cm (Simple)", "precio_meli": 16075.0, "precio_transf": 9000.0}};
+        let catActual = 'Todos';
+        let franqActual = 'Todas';
+        let productoActual = null;
+        const whatsappNumber = "5491168031083";
+
+        function inicializarSidebar() {
+            const franqMap = {};
+            productos.forEach(p => {
+                let f = p.franquicia || 'General';
+                franqMap[f] = (franqMap[f] || 0) + 1;
+            });
+
+            const franqList = document.getElementById('franqList');
+            franqList.innerHTML = '';
+
+            // Botón Todas
+            const btnTodas = document.createElement('button');
+            btnTodas.className = 'franq-btn active';
+            btnTodas.innerHTML = `<span>🌐 Todas</span> <span class="franq-count">${productos.length}</span>`;
+            btnTodas.onclick = () => filtrarFranquicia('Todas', btnTodas);
+            franqList.appendChild(btnTodas);
+
+            // Ordenar franquicias alfabéticamente
+            const franqsOrdenadas = Object.keys(franqMap).sort();
+
+            franqsOrdenadas.forEach(f => {
+                const btn = document.createElement('button');
+                btn.className = 'franq-btn';
+                btn.innerHTML = `<span>${f}</span> <span class="franq-count">${franqMap[f]}</span>`;
+                btn.onclick = () => filtrarFranquicia(f, btn);
+                franqList.appendChild(btn);
+            });
+        }
+
+        function filtrarFranquicia(franq, btn) {
+            franqActual = franq;
+            document.querySelectorAll('.franq-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            renderProductos();
+        }
+
+        function filtrarCategoria(cat, btn) {
+            catActual = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            renderProductos();
+        }
+
+        function renderProductos() {
+            const grid = document.getElementById('productGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            grid.innerHTML = '';
+
+            let count = 0;
+            productos.forEach((p, index) => {
+                const matchCat = catActual === 'Todos' || p.categoria.toLowerCase() === catActual.toLowerCase();
+                const matchFranq = franqActual === 'Todas' || p.franquicia === franqActual;
+                const matchSearch = p.personaje.toLowerCase().includes(search) || p.franquicia.toLowerCase().includes(search) || p.categoria.toLowerCase().includes(search);
+
+                if (matchCat && matchFranq && matchSearch) {
+                    count++;
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => abrirModal(index);
+                    
+                    let badgeHTML = p.destacado ? `<div class="badge">🔥 Destacado</div>` : '';
+                    let franqHTML = p.franquicia ? `<div class="franq-tag">${p.franquicia}</div>` : '';
+
+                    let precioBase = variantesGlobales['DAKI90S'] ? variantesGlobales['DAKI90S'].precio_transf : 17000;
+                    let precioBaseMeli = variantesGlobales['DAKI90S'] ? variantesGlobales['DAKI90S'].precio_meli : 27055;
+                    let precioTransfFmt = Number(precioBase).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+                    let precioMeliFmt = Number(precioBaseMeli).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+
+                    card.innerHTML = `
+                        ${badgeHTML}
+                        ${franqHTML}
+                        <div class="carousel">
+                            <img src="${p.fotos[0]}" alt="${p.personaje}" loading="lazy">
+                        </div>
+                        <div class="card-body">
+                            <div class="title">Dakimakura - ${p.personaje}</div>
+                            <div class="sub">${p.franquicia}</div>
+                            
+                            <div class="prices">
+                                <div class="price-row">
+                                    <span class="price-wsp-label">Transferencia</span>
+                                    <span class="price-wsp">${precioTransfFmt}</span>
+                                </div>
+                                <div class="price-row">
+                                    <span class="price-meli-label" style="font-size:0.65rem; color:#ffe600;">Mercado Libre</span>
+                                    <span class="price-meli" style="font-size:0.85rem; color:#ffe600;">${precioMeliFmt}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }
+            });
+
+            if(count === 0) {
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #a68ec3; padding: 40px;">No se encontraron productos para tu búsqueda.</div>`;
+            }
+        }
+
+        function abrirModal(index) {
+            productoActual = productos[index];
+            document.getElementById('modalTitle').innerText = "Dakimakura - " + productoActual.personaje;
+            document.getElementById('modalFranq').innerText = productoActual.franquicia;
+
+            const mainImg = document.getElementById('modalMainImg');
+            const thumbs = document.getElementById('modalThumbnails');
+            thumbs.innerHTML = '';
+
+            if(productoActual.fotos && productoActual.fotos.length > 0) {
+                mainImg.src = productoActual.fotos[0];
+                productoActual.fotos.forEach((foto, i) => {
+                    const t = document.createElement('img');
+                    t.src = foto;
+                    t.className = 'thumb ' + (i === 0 ? 'active' : '');
+                    t.onclick = () => {
+                        mainImg.src = foto;
+                        document.querySelectorAll('.thumb').forEach(th => th.classList.remove('active'));
+                        t.classList.add('active');
+                    };
+                    thumbs.appendChild(t);
+                });
+            }
+
+            const selectVar = document.getElementById('variantSelect');
+            selectVar.innerHTML = '';
+            if (variantesGlobales) {
+                for (const [key, v] of Object.entries(variantesGlobales)) {
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.innerText = `${v.nombre_base} ($ ${v.precio_transf.toLocaleString('es-AR')})`;
+                    selectVar.appendChild(opt);
+                }
+            }
+
+            actualizarVarianteModal();
+            document.getElementById('productModal').style.display = 'flex';
+        }
+
+        function actualizarVarianteModal() {
+            const selectVar = document.getElementById('variantSelect');
+            const codigoVar = selectVar.value;
+            const varianteData = variantesGlobales[codigoVar];
+
+            if(varianteData) {
+                let transfFmt = Number(varianteData.precio_transf).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+                let meliFmt = Number(varianteData.precio_meli).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+
+                document.getElementById('modalPriceTransf').innerText = transfFmt;
+                document.getElementById('modalPriceMeli').innerText = meliFmt;
+
+                let msgWsp = `¡Hola ARCHER! Quiero encargar la Dakimakura de ${productoActual.personaje} (${productoActual.franquicia}) en versión: ${varianteData.nombre_base}. Aprovecho el precio por transferencia.`;
+                document.getElementById('modalBtnWsp').href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msgWsp)}`;
+            }
+
+            const btnMeli = document.getElementById('modalBtnMeli');
+            if(productoActual.link_meli) {
+                btnMeli.href = productoActual.link_meli;
+                btnMeli.style.display = 'block';
+            } else {
+                btnMeli.style.display = 'none';
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        function cerrarModalFuera(e) {
+            if(e.target.id === 'productModal') {
+                cerrarModal();
+            }
+        }
+
+        // Inicialización
+        inicializarSidebar();
+        renderProductos();
+    </script>
+</body>
+</html>
